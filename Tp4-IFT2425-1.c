@@ -357,7 +357,75 @@ void Fill_Pict(float** MatPts,float** MatPict,int PtsNumber,int NbPts)
 //------------------------------------------------
 // FONCTIONS TPs----------------------------------                      
 //------------------------------------------------
-      
+
+int N = 3; // Nombre de points
+
+float Xi[N] = {X_1, X_2, X_3};
+float Yi[N] = {Y_1, Y_2, Y_3};
+
+float[] equationDiff(float t, float x, float y, float dx, float dy){
+
+  //for (int i = T_0; i < T_F; i += H)
+  //{
+
+    float fx = 0.0;
+    float fy = 0.0;
+
+    for (int i = 0; i < N; i++)
+    {
+      float numX = Xi[i] - x;
+      float numY = Yi[i] - y;
+      float denominateur = pow(sqrt(pow(dx, 2) + pow(dy, 2) + D * D),3);
+      fx += (numX - x) / denominateur;
+      fy += numY / denominateur;
+    }
+
+    float[] result = new float[2];
+
+    float accX = -R * dx + fx - C * x;
+    float accY = -R * dy + fy - C * y;
+
+    result[0] = accX;
+    result[1] = accY;
+
+    dx += accX * H;
+    dy += accY * H;
+
+    //x += dx * H;
+    //y += dy * H;
+
+  //}
+
+  return result;
+
+}
+
+void RungeKuttaFehlberg(float t, float x, float y, float dx, float dy)
+{
+  float k1x, k1y, k2x, k2y, k3x, k3y, k4x, k4y, k5x, k5y, k6x, k6y;
+  
+  k1x = H * equationDiff(t, x, y, dx, dy)[0];
+  k1y = H * equationDiff(t, x, y, dx, dy)[1];
+
+  k2x = H * equationDiff(t+H/4, x+k1x/4, y+k1y/4, dx, dy)[0];
+  k2y = H * equationDiff(t+H/4, x+k1x/4, y+k1y/4, dx, dy)[1];
+
+  k3x = H * equationDiff(t+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[0];
+  k3y = H * equationDiff(t+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[1];
+
+  k4x = H * equationDiff(t+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[0];
+  k4y = H * equationDiff(t+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[1];
+
+  k5x = H * equationDiff(t+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[0];
+  k5y = H * equationDiff(t+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[1];
+
+  k6x = H * equationDiff(t+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[0];
+  k6y = H * equationDiff(t+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[1];
+
+  x += (16*k1x/135 + 6656*k3x/12825 + 28561*k4x/56430 - 9*k5x/50 + 2*k6x/55);
+  y += (16*k1y/135 + 6656*k3y/12825 + 28561*k4y/56430 - 9*k5y/50 + 2*k6y/55);
+
+}
 
 //----------------------------------------------------------
 //----------------------------------------------------------
@@ -392,6 +460,8 @@ int main (int argc, char **argv)
   //---------------------------------------------------------------------  
 
   //Il faut travailler ici ...et dans > // FONCTIONS TPs
+
+  
 
   //Un exemple ou la matrice de points est remplie
   //par une courbe donné par l'équation d'en bas... et non pas par 
