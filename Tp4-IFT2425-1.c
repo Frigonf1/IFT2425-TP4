@@ -59,7 +59,7 @@ GC	  gc;
 #define H            0.0001
 #define T_0          0.0                 
 #define T_F         30.0 
-#define NB_INTERV (T_F-T_0)/H
+#define NB_INTERV (T_F-T_0)/H 
    
  //-Cst-Image                             
 #define WIDTH  512
@@ -420,7 +420,6 @@ void RungeKuttaFehlberg(float t, float x, float y, float dx, float dy)
     x += dx * H;
     y += dy * H;
     t += H;
-
   }
 }
 
@@ -465,26 +464,26 @@ int main (int argc, char **argv)
   float dy = 0.0;
   float t = T_0;
 
-  for (int i = T_0; i < T_F; i += H)
+  for (int i = 0; i < NB_INTERV; i++)
   {
   
-    k1x = H * equationDiff(i, x, y, dx, dy)[0];
-    k1y = H * equationDiff(i, x, y, dx, dy)[1];
+    k1x = H * equationDiff(i*H, x, y, dx, dy)[0];
+    k1y = H * equationDiff(i*H, x, y, dx, dy)[1];
 
-    k2x = H * equationDiff(i+H/4, x+k1x/4, y+k1y/4, dx, dy)[0];
-    k2y = H * equationDiff(i+H/4, x+k1x/4, y+k1y/4, dx, dy)[1];
+    k2x = H * equationDiff(i*H+H/4, x+k1x/4, y+k1y/4, dx, dy)[0];
+    k2y = H * equationDiff(i*H+H/4, x+k1x/4, y+k1y/4, dx, dy)[1];
 
-    k3x = H * equationDiff(i+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[0];
-    k3y = H * equationDiff(i+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[1];
+    k3x = H * equationDiff(i*H+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[0];
+    k3y = H * equationDiff(i*H+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[1];
 
-    k4x = H * equationDiff(i+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[0];
-    k4y = H * equationDiff(i+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[1];
+    k4x = H * equationDiff(i*H+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[0];
+    k4y = H * equationDiff(i*H+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[1];
 
-    k5x = H * equationDiff(i+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[0];
-    k5y = H * equationDiff(i+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[1];
+    k5x = H * equationDiff(i*H+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[0];
+    k5y = H * equationDiff(i*H+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[1];
 
-    k6x = H * equationDiff(i+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[0];
-    k6y = H * equationDiff(i+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[1];
+    k6x = H * equationDiff(i*H+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[0];
+    k6y = H * equationDiff(i*H+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[1];
 
     dx += (16*k1x/135 + 6656*k3x/12825 + 28561*k4x/56430 - 9*k5x/50 + 2*k6x/55);
     dy += (16*k1y/135 + 6656*k3y/12825 + 28561*k4y/56430 - 9*k5y/50 + 2*k6y/55);
@@ -492,8 +491,10 @@ int main (int argc, char **argv)
     x += dx * H;
     y += dy * H;
     t += H;
+    printf("x: %f, y: %f\n", x, y);
     MatPts[i][0] = x;
     MatPts[i][1] = y;
+
   }
     
 
