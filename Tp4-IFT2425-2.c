@@ -1,9 +1,10 @@
 //------------------------------------------------------
-// module  : Tp4-IFT2425-2.c
-// author  : François Frigon - 20297551 - francois.frigon@umontreal.ca
-// date    : 20 avril 2025
-// version : 1.0
-// language: C++
+// module  :  Tp4-IFT2425-2.c
+// author  :  François Frigon - 20297551 - francois.frigon@umontreal.ca
+//            Xavier Dontigny - 20215658 - xavier.dontigny@umontreal.ca
+// date    :  20 avril 2025
+// version :  1.0
+// language:  C++
 // note    :
 //------------------------------------------------------
 //  
@@ -473,7 +474,261 @@ void Fill_Pict(float** MatPts,float** MatPict,int PtsNumber,int NbPts)
 //------------------------------------------------
 // FONCTIONS TPs----------------------------------                      
 //------------------------------------------------
+int N = 3; // Nombre de points
 
+float Xi[3] = {X_1, X_2, X_3};
+float Yi[3] = {Y_1, Y_2, Y_3};
+
+float* equationDiff(float t, float x, float y, float dx, float dy){
+
+    float fx = 0.0;
+    float fy = 0.0;
+
+    for (int i = 0; i < N; i++)
+    {
+      float numX = Xi[i] - x;
+      float numY = Yi[i] - y;
+      float denominateur = pow(sqrt(pow(numX, 2) + pow(numY, 2) + D * D),3);
+      fx += numX / denominateur;
+      fy += numY / denominateur;
+    }
+
+    static float result[2];
+
+    float accX = -R * dx + fx - C * x;
+    float accY = -R * dy + fy - C * y;
+
+    result[0] = accX;
+    result[1] = accY;
+
+  return result;
+
+}
+
+void RungeKuttaFehlberg(float t, float x, float y, float dx, float dy)
+{
+  float k1x, k1y, k2x, k2y, k3x, k3y, k4x, k4y, k5x, k5y, k6x, k6y;
+
+  for (int i = T_0; i < T_F; i += H)
+  {
+  
+    k1x = H * equationDiff(t, x, y, dx, dy)[0];
+    k1y = H * equationDiff(t, x, y, dx, dy)[1];
+
+    k2x = H * equationDiff(t+H/4, x+k1x/4, y+k1y/4, dx, dy)[0];
+    k2y = H * equationDiff(t+H/4, x+k1x/4, y+k1y/4, dx, dy)[1];
+
+    k3x = H * equationDiff(t+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[0];
+    k3y = H * equationDiff(t+3*H/8, x+3*k1x/8+9*k2x/32, y+3*k1y/8+9*k2y/32, dx, dy)[1];
+
+    k4x = H * equationDiff(t+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[0];
+    k4y = H * equationDiff(t+12*H/13, x+1932*k1x/2197-7200*k2x/2197+7296*k3x/2197, y+1932*k1y/2197-7200*k2y/2197+7296*k3y/2197, dx, dy)[1];
+
+    k5x = H * equationDiff(t+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[0];
+    k5y = H * equationDiff(t+H, x+439*k1x/216-8*k2x+3680*k3x/513-845*k4x/4104, y+439*k1y/216-8*k2y+3680*k3y/513-845*k4y/4104, dx, dy)[1];
+
+    k6x = H * equationDiff(t+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[0];
+    k6y = H * equationDiff(t+H/2, x-8*k1x/27+2*k2x-3544*k3x/2565+1859*k4x/4104-11*k5x/40, y-8*k1y/27+2*k2y-3544*k3y/2565+1859*k4y/4104-11*k5y/40, dx, dy)[1];
+
+    dx += (16*k1x/135 + 6656*k3x/12825 + 28561*k4x/56430 - 9*k5x/50 + 2*k6x/55);
+    dy += (16*k1y/135 + 6656*k3y/12825 + 28561*k4y/56430 - 9*k5y/50 + 2*k6y/55);
+
+    x += dx * H;
+    y += dy * H;
+    t += H;
+  }
+}
+
+int determineConvergence(float* trajectory, int trajectoryLength) {
+  const float convergenceThreshold = 0.5f;
+  const int minConsecutiveSteps = 20;
+  
+  int consecutiveCount[3] = {0, 0, 0};
+  
+  for (int i = 0; i < trajectoryLength; i++) {
+      float x = trajectory[i*2];
+      float y = trajectory[i*2 + 1];
+      
+      float dist1 = fabs(x - X_1) + fabs(y - Y_1);
+      float dist2 = fabs(x - X_2) + fabs(y - Y_2);
+      float dist3 = fabs(x - X_3) + fabs(y - Y_3);
+      
+      if (dist1 < convergenceThreshold) {
+          consecutiveCount[0]++;
+          if (consecutiveCount[0] >= minConsecutiveSteps) return 1;
+      } else {
+          consecutiveCount[0] = 0;
+      }
+      
+      if (dist2 < convergenceThreshold) {
+          consecutiveCount[1]++;
+          if (consecutiveCount[1] >= minConsecutiveSteps) return 2;
+      } else {
+          consecutiveCount[1] = 0;
+      }
+      
+      if (dist3 < convergenceThreshold) {
+          consecutiveCount[2]++;
+          if (consecutiveCount[2] >= minConsecutiveSteps) return 3;
+      } else {
+          consecutiveCount[2] = 0;
+      }
+  }
+  
+  return 0;
+}
+
+int vitesseConvergence(float* trajectory, int trajectoryLength) {
+  const float convergenceThreshold = 0.5f;
+  const int minConsecutiveSteps = 20;
+  
+  int consecutiveCount[3] = {0, 0, 0};
+  
+  for (int i = 0; i < trajectoryLength; i++) {
+      float x = trajectory[i*2];
+      float y = trajectory[i*2 + 1];
+      
+      float dist1 = fabs(x - X_1) + fabs(y - Y_1);
+      float dist2 = fabs(x - X_2) + fabs(y - Y_2);
+      float dist3 = fabs(x - X_3) + fabs(y - Y_3);
+      
+      if (dist1 < convergenceThreshold) {
+          consecutiveCount[0]++;
+          if (consecutiveCount[0] >= minConsecutiveSteps) return i - minConsecutiveSteps + 1;
+      } else {
+          consecutiveCount[0] = 0;
+      }
+      
+      if (dist2 < convergenceThreshold) {
+          consecutiveCount[1]++;
+          if (consecutiveCount[1] >= minConsecutiveSteps) return i - minConsecutiveSteps + 1;
+      } else {
+          consecutiveCount[1] = 0;
+      }
+      
+      if (dist3 < convergenceThreshold) {
+          consecutiveCount[2]++;
+          if (consecutiveCount[2] >= minConsecutiveSteps) return i - minConsecutiveSteps + 1;
+      } else {
+          consecutiveCount[2] = 0;
+      }
+  }
+  
+  return -1;
+}
+
+void genereImage(float*** MatPict, int width, int height) {
+  const int maxSteps = (int)((T_F - T_0) / H);
+  float* trajectory = new float[maxSteps * 2];
+  
+  float maxPossibleSteps = (T_F - T_0) / H;
+  float normalization = 255.0f / maxPossibleSteps;
+  
+  for (int y_pixel = 0; y_pixel < height; y_pixel++) {
+      for (int x_pixel = 0; x_pixel < width; x_pixel++) {
+          float x0 = (x_pixel - width/2) * (MAX_X / width);
+          float y0 = -(y_pixel - height/2) * (MAX_Y / height);
+          
+          float x = x0, y = y0;
+          float dx = 0.0f, dy = 0.0f;
+          float t = T_0;
+          int convSpeed = -1;
+          
+          for (int step = 0; step < maxSteps; step++) {
+              trajectory[step*2] = x;
+              trajectory[step*2 + 1] = y;
+              
+              if (step >= 20) {
+                  int currentConv = vitesseConvergence(trajectory, step+1);
+                  if (currentConv >= 0) {
+                      convSpeed = currentConv;
+                      break;
+                  }
+              }
+              
+              float* acc = equationDiff(t, x, y, dx, dy);
+
+              float k1x = H * dx;
+              float k1y = H * dy;
+              float k1vx = H * acc[0];
+              float k1vy = H * acc[1];
+
+              float* acc2 = equationDiff(t + H/4, 
+                                      x + k1x/4, 
+                                      y + k1y/4, 
+                                      dx + k1vx/4, 
+                                      dy + k1vy/4);
+              float k2x = H * (dx + k1vx/4);
+              float k2y = H * (dy + k1vy/4);
+              float k2vx = H * acc2[0];
+              float k2vy = H * acc2[1];
+
+              float* acc3 = equationDiff(t + 3*H/8,
+                                      x + 3*k1x/32 + 9*k2x/32,
+                                      y + 3*k1y/32 + 9*k2y/32,
+                                      dx + 3*k1vx/32 + 9*k2vx/32,
+                                      dy + 3*k1vy/32 + 9*k2vy/32);
+              float k3x = H * (dx + (3*k1vx + 9*k2vx)/32);
+              float k3y = H * (dy + (3*k1vy + 9*k2vy)/32);
+              float k3vx = H * acc3[0];
+              float k3vy = H * acc3[1];
+
+              float* acc4 = equationDiff(t + 12*H/13,
+                                      x + 1932*k1x/2197 - 7200*k2x/2197 + 7296*k3x/2197,
+                                      y + 1932*k1y/2197 - 7200*k2y/2197 + 7296*k3y/2197,
+                                      dx + 1932*k1vx/2197 - 7200*k2vx/2197 + 7296*k3vx/2197,
+                                      dy + 1932*k1vy/2197 - 7200*k2vy/2197 + 7296*k3vy/2197);
+              float k4x = H * (dx + (1932*k1vx - 7200*k2vx + 7296*k3vx)/2197);
+              float k4y = H * (dy + (1932*k1vy - 7200*k2vy + 7296*k3vy)/2197);
+              float k4vx = H * acc4[0];
+              float k4vy = H * acc4[1];
+
+              float* acc5 = equationDiff(t + H,
+                                      x + 439*k1x/216 - 8*k2x + 3680*k3x/513 - 845*k4x/4104,
+                                      y + 439*k1y/216 - 8*k2y + 3680*k3y/513 - 845*k4y/4104,
+                                      dx + 439*k1vx/216 - 8*k2vx + 3680*k3vx/513 - 845*k4vx/4104,
+                                      dy + 439*k1vy/216 - 8*k2vy + 3680*k3vy/513 - 845*k4vy/4104);
+              float k5x = H * (dx + (439*k1vx/216 - 8*k2vx + 3680*k3vx/513 - 845*k4vx/4104));
+              float k5y = H * (dy + (439*k1vy/216 - 8*k2vy + 3680*k3vy/513 - 845*k4vy/4104));
+              float k5vx = H * acc5[0];
+              float k5vy = H * acc5[1];
+
+              
+              float* acc6 = equationDiff(t + H/2,
+                                      x - 8*k1x/27 + 2*k2x - 3544*k3x/2565 + 1859*k4x/4104 - 11*k5x/40,
+                                      y - 8*k1y/27 + 2*k2y - 3544*k3y/2565 + 1859*k4y/4104 - 11*k5y/40,
+                                      dx - 8*k1vx/27 + 2*k2vx - 3544*k3vx/2565 + 1859*k4vx/4104 - 11*k5vx/40,
+                                      dy - 8*k1vy/27 + 2*k2vy - 3544*k3vy/2565 + 1859*k4vy/4104 - 11*k5vy/40);
+              float k6x = H * (dx + (-8*k1vx/27 + 2*k2vx - 3544*k3vx/2565 + 1859*k4vx/4104 - 11*k5vx/40));
+              float k6y = H * (dy + (-8*k1vy/27 + 2*k2vy - 3544*k3vy/2565 + 1859*k4vy/4104 - 11*k5vy/40));
+              float k6vx = H * acc6[0];
+              float k6vy = H * acc6[1];
+              
+              dx += (16*k1vx/135 + 6656*k3vx/12825 + 28561*k4vx/56430 - 9*k5vx/50 + 2*k6vx/55);
+              dy += (16*k1vy/135 + 6656*k3vy/12825 + 28561*k4vy/56430 - 9*k5vy/50 + 2*k6vy/55);
+
+              x += (25*k1x/216 + 1408*k3x/2565 + 2197*k4x/4104 - k5x/5);
+              y += (25*k1y/216 + 1408*k3y/2565 + 2197*k4y/4104 - k5y/5);
+              
+              t += H;
+          }
+          
+          if (convSpeed >= 0) {
+            float grayValue = convSpeed * normalization;
+            for (int k = 0; k < 3; k++) {
+                MatPict[k][y_pixel][x_pixel] = grayValue;
+            }
+          } 
+          else {
+              for (int k = 0; k < 3; k++) {
+                  MatPict[k][y_pixel][x_pixel] = 255;
+              }
+          }
+      }
+  }
+  
+  delete[] trajectory;
+}
 
 //----------------------------------------------------------
 //----------------------------------------------------------
@@ -520,10 +775,9 @@ int main (int argc, char **argv)
   //par une image en niveaux de gris  donné par l'équation d'en bas... et non pas par 
   //la vitesse de convergence
 
-  for(k=0;k<TROIS;k++) for(i=0;i<HEIGHT;i++) for(j=0;j<WIDTH;j++) 
-     {  MatPict[0][i][j]=(i+j*k*i)%255; 
-        MatPict[1][i][j]=(i+j*k*i)%255;
-        MatPict[2][i][j]=(i+j*k*i)%255;  }
+  printf("\nGénération de l'image...\n");
+  genereImage(MatPict, WIDTH, HEIGHT);
+  SaveImagePpm((char*)OUTPUT_FILE, MatPict, HEIGHT, WIDTH);
 
  
    //--Fin Question 2-----------------------------------------------------

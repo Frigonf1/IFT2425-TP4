@@ -1,9 +1,10 @@
 //------------------------------------------------------
-// module  : Tp4-IFT2425-1.c
-// author  : François Frigon - 20297551 - francois.frigon@umontreal.ca
-// date    : 20 avril 2025
-// version : 1.0
-// language: C++
+// module  :  Tp4-IFT2425-1.c
+// author  :  François Frigon - 20297551 - francois.frigon@umontreal.ca
+//            Xavier Dontigny - 20215658 - xavier.dontigny@umontreal.ca
+// date    :  20 avril 2025
+// version :  1.0
+// language:  C++
 // note    :
 //------------------------------------------------------
 //  
@@ -422,6 +423,8 @@ void RungeKuttaFehlberg(float t, float x, float y, float dx, float dy)
     t += H;
   }
 }
+
+
 
 //----------------------------------------------------------
 //----------------------------------------------------------
